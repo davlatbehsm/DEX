@@ -3,21 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>DEX 7.0 - Fixed</title>
+<title>DEX 8.0 - ULTIMATE</title>
 <style>
 :root {
-    --bg: #0f1621; --card: #17212b; --primary: #5288c1; --text: #ffffff;
-    --text-dim: #7f91a4; --msg-out: #2b5278; --msg-in: #182533; --red: #ff595a;
+    --bg: #0e1621; --card: #17212b; --primary: #2481cc; --text: #ffffff;
+    --text-dim: #708499; --msg-out: #2b5278; --msg-in: #182533; --red: #e53935;
 }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-body { margin: 0; background: #000; color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; height: 100dvh; overflow: hidden; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background: #000; color: var(--text); font-family: -apple-system, sans-serif; height: 100dvh; overflow: hidden; }
+
 .app { width: 100%; height: 100%; max-width: 500px; margin: 0 auto; background: var(--bg); display: flex; flex-direction: column; position: relative; }
 
 /* ЭКРАНЫ */
 .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: none; flex-direction: column; z-index: 10; }
 .screen.active { display: flex; }
 
-header { height: 60px; background: var(--card); display: flex; align-items: center; padding: 0 16px; justify-content: space-between; z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+header { height: 60px; background: var(--card); display: flex; align-items: center; padding: 0 16px; justify-content: space-between; z-index: 20; }
 .content { flex: 1; overflow-y: auto; padding-bottom: 80px; }
 
 /* ТАБ БАР */
@@ -25,19 +26,20 @@ header { height: 60px; background: var(--card); display: flex; align-items: cent
 .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: var(--text-dim); cursor: pointer; }
 .tab.active { color: var(--primary); }
 
-/* ЭЛЕМЕНТЫ СПИСКА */
-.list-item { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid #1c252f; cursor: pointer; }
-.avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; margin-right: 15px; }
+/* СПИСКИ */
+.list-item { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid #00000030; cursor: pointer; }
+.avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; margin-right: 15px; flex-shrink: 0; }
 
-/* СООБЩЕНИЯ */
-.bubble { max-width: 80%; padding: 10px 14px; border-radius: 16px; margin-bottom: 8px; font-size: 15px; }
+/* ЧАТ */
+.bubble { max-width: 85%; padding: 8px 14px; border-radius: 15px; margin-bottom: 4px; font-size: 15px; line-height: 1.4; }
 .me { background: var(--msg-out); align-self: flex-end; border-bottom-right-radius: 4px; margin-left: auto; }
 .other { background: var(--msg-in); align-self: flex-start; border-bottom-left-radius: 4px; }
 
-/* ВХОД */
-.auth-box { padding: 30px; display: flex; flex-direction: column; gap: 15px; height: 100%; justify-content: center; }
-input { background: var(--card); border: 1px solid #2f3b47; color: #fff; padding: 15px; border-radius: 12px; font-size: 16px; width: 100%; }
-.btn { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; }
+/* ФОРМЫ */
+.auth-box { padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; height: 100%; justify-content: center; }
+input { background: #242f3d; border: 1px solid #242f3d; color: #fff; padding: 15px; border-radius: 10px; font-size: 16px; width: 100%; }
+.btn { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
 </style>
 </head>
 <body>
@@ -45,104 +47,111 @@ input { background: var(--card); border: 1px solid #2f3b47; color: #fff; padding
 <div class="app">
     <div id="scr-auth" class="screen">
         <div class="auth-box">
-            <h1 style="text-align:center; color:var(--primary); font-size:40px; margin:0">DEX</h1>
-            <p style="text-align:center; color:var(--text-dim)">Вход в систему</p>
-            <input id="loginUser" placeholder="Username">
-            <input id="loginPass" type="password" placeholder="Password">
-            <button class="btn" onclick="Auth.process()">Начать общение</button>
+            <h1 style="text-align:center; margin:0; font-size:48px; color:var(--primary)">DEX</h1>
+            <p style="text-align:center; color:var(--text-dim); margin-bottom:20px">Security & Privacy</p>
+            <input id="uIn" placeholder="Имя пользователя">
+            <input id="pIn" type="password" placeholder="Пароль">
+            <button class="btn" onclick="UI.handleAuth()">Войти / Зарегистрироваться</button>
         </div>
     </div>
 
     <div id="scr-main" class="screen">
-        <header><div style="font-weight:bold; font-size:20px" id="titleText">Чаты</div></header>
+        <header><div style="font-weight:bold; font-size:19px" id="hTitle">Чаты</div></header>
+        
         <div id="view-chats" class="content"></div>
         <div id="view-search" class="content" style="display:none; padding:15px">
-            <input id="searchIn" placeholder="Поиск по базе..." oninput="Search.run()">
-            <div id="searchRes" style="margin-top:10px"></div>
+            <input id="sIn" placeholder="Найти человека..." oninput="UI.search()">
+            <div id="sRes" style="margin-top:10px"></div>
         </div>
-        <div id="view-prof" class="content" style="display:none; padding:20px; text-align:center">
-            <div id="myAv" class="avatar" style="width:80px; height:80px; margin:0 auto 15px; font-size:30px"></div>
-            <h2 id="myNameDisplay">User</h2>
-            <button class="btn" style="background:#242f3d" onclick="Sync.copyID()">Скопировать мой ID</button>
-            <button class="btn" style="background:#242f3d; margin-top:10px" onclick="Sync.importFriend()">Добавить друга по ID</button>
-            <button class="btn" style="background:var(--red); margin-top:20px" onclick="Auth.logout()">Выйти</button>
+        <div id="view-prof" class="content" style="display:none; padding:30px; text-align:center">
+            <div id="myAv" class="avatar" style="width:100px; height:100px; margin:0 auto 20px; font-size:40px"></div>
+            <h2 id="myName"></h2>
+            <button class="btn" style="width:100%; background:#242f3d" onclick="UI.copyID()">Мой ID для друга</button>
+            <button class="btn" style="width:100%; background:#242f3d; margin-top:10px" onclick="UI.addID()">Добавить друга по ID</button>
+            <button class="btn" style="width:100%; background:var(--red); margin-top:30px" onclick="UI.logout()">Выйти из системы</button>
         </div>
+
         <div class="tab-bar">
-            <div class="tab active" onclick="Tabs.set('chats', this)"><span>💬</span>Чаты</div>
-            <div class="tab" onclick="Tabs.set('search', this)"><span>🔍</span>Поиск</div>
-            <div class="tab" onclick="Tabs.set('prof', this)"><span>👤</span>Профиль</div>
+            <div class="tab active" onclick="UI.tab('chats', this)"><span>💬</span>Чаты</div>
+            <div class="tab" onclick="UI.tab('search', this)"><span>🔍</span>Поиск</div>
+            <div class="tab" onclick="UI.tab('prof', this)"><span>👤</span>Профиль</div>
         </div>
     </div>
 
     <div id="scr-chat" class="screen">
         <header>
             <div style="display:flex; align-items:center; gap:12px">
-                <div onclick="Chat.close()" style="cursor:pointer; font-size:24px">←</div>
-                <div id="chatName" style="font-weight:bold">Name</div>
+                <div onclick="UI.closeChat()" style="cursor:pointer; font-size:24px">←</div>
+                <div id="cName" style="font-weight:bold">Чат</div>
             </div>
         </header>
-        <div id="msgList" class="content" style="padding:15px; display:flex; flex-direction:column"></div>
+        <div id="mList" class="content" style="padding:15px; display:flex; flex-direction:column; gap:4px"></div>
         <div style="padding:10px; background:var(--card); display:flex; gap:10px">
-            <input id="msgIn" placeholder="Сообщение..." style="margin:0">
-            <button onclick="Chat.send()" style="background:var(--primary); border:none; color:#fff; width:45px; border-radius:12px">➤</button>
+            <input id="mIn" placeholder="Сообщение..." style="margin:0">
+            <button onclick="UI.send()" style="background:var(--primary); border:none; color:#fff; width:50px; border-radius:10px">➤</button>
         </div>
     </div>
 </div>
 
 <script>
+// ГЛОБАЛЬНАЯ БАЗА ДАННЫХ - ТЕПЕРЬ ОДНА НАВСЕГДА
 const DB = {
     me: null,
-    data: JSON.parse(localStorage.getItem('dex_final')) || { users: {}, chats: {} },
-    save() { localStorage.setItem('dex_final', JSON.stringify(this.data)); },
-    cid(u1, u2) { return [u1, u2].sort().join('_vs_'); }
+    store: JSON.parse(localStorage.getItem('dex_final_storage')) || { users: {}, chats: {} },
+    save() { localStorage.setItem('dex_final_storage', JSON.stringify(this.store)); },
+    cid(u1, u2) { return [u1, u2].sort().join('::'); }
 };
 
-const Auth = {
-    process() {
-        const u = loginUser.value.trim(), p = loginPass.value.trim();
-        if(!u || !p) return alert("Заполни поля!");
+const UI = {
+    // Вход и Регистрация
+    handleAuth() {
+        const u = uIn.value.trim(), p = pIn.value.trim();
+        if(!u || !p) return alert("Заполни все поля");
 
-        if(!DB.data.users[u]) {
-            DB.data.users[u] = { pass: p };
-            DB.data.chats[DB.cid(u, u)] = [{f:'System', t:'Добро пожаловать в Избранное!', d:''}];
+        if(!DB.store.users[u]) {
+            DB.store.users[u] = { pass: p };
+            // Сразу создаем избранное
+            DB.store.chats[DB.cid(u, u)] = [{f:'System', t:'Твои личные заметки'}];
             DB.save();
-        } else if(DB.data.users[u].pass !== p) {
-            return alert("Неверный пароль!");
+        } else if(DB.store.users[u].pass !== p) {
+            return alert("Неверный пароль");
         }
-
+        
         this.login(u);
     },
+
     login(u) {
         DB.me = u;
-        localStorage.setItem('dex_session', u);
-        scr_auth.classList.remove('active');
+        localStorage.setItem('dex_active_session', u);
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         scr_main.classList.add('active');
-        myNameDisplay.innerText = u;
+        myName.innerText = u;
         myAv.innerText = u[0].toUpperCase();
-        Tabs.set('chats', document.querySelector('.tab'));
+        this.renderChats();
     },
-    logout() {
-        localStorage.removeItem('dex_session');
-        location.reload();
-    }
-};
 
-const Tabs = {
-    set(t, el) {
+    logout() {
+        localStorage.removeItem('dex_active_session');
+        location.reload();
+    },
+
+    // Табы
+    tab(t, el) {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
         el.classList.add('active');
         ['chats', 'search', 'prof'].forEach(v => document.getElementById('view-'+v).style.display = (v==t?'block':'none'));
-        titleText.innerText = t=='chats'?'Чаты':(t=='search'?'Поиск':'Профиль');
-        if(t=='chats') this.renderList();
+        hTitle.innerText = t=='chats'?'Чаты':(t=='search'?'Поиск':'Профиль');
+        if(t=='chats') this.renderChats();
     },
-    renderList() {
+
+    renderChats() {
         const v = document.getElementById('view-chats'); v.innerHTML = "";
-        Object.keys(DB.data.chats).forEach(id => {
+        Object.keys(DB.store.chats).forEach(id => {
             if(id.includes(DB.me)) {
-                const partner = id.split('_vs_').find(x => x != DB.me) || DB.me;
-                const last = DB.data.chats[id].slice(-1)[0];
+                const partner = id.split('::').find(x => x != DB.me) || DB.me;
+                const last = DB.store.chats[id].slice(-1)[0];
                 v.innerHTML += `
-                    <div class="list-item" onclick="Chat.open('${partner}')">
+                    <div class="list-item" onclick="UI.openChat('${partner}')">
                         <div class="avatar">${partner[0].toUpperCase()}</div>
                         <div style="flex:1">
                             <div style="font-weight:bold">${partner==DB.me?'⭐ Избранное':partner}</div>
@@ -151,73 +160,74 @@ const Tabs = {
                     </div>`;
             }
         });
-    }
-};
-
-const Chat = {
-    target: null,
-    open(u) {
-        this.target = u; chatName.innerText = u==DB.me?'Избранное':u;
-        scr_chat.classList.add('active'); this.render();
     },
-    close() { scr_chat.classList.remove('active'); Tabs.renderList(); },
-    render() {
-        const list = document.getElementById('msgList'); list.innerHTML = "";
-        const cid = DB.cid(DB.me, this.target);
-        (DB.data.chats[cid] || []).forEach(m => {
+
+    // Поиск
+    search() {
+        const q = sIn.value.trim().toLowerCase();
+        const res = document.getElementById('sRes'); res.innerHTML = "";
+        if(!q) return;
+        Object.keys(DB.store.users).forEach(u => {
+            if(u.toLowerCase().includes(q) && u != DB.me) {
+                res.innerHTML += `<div class="list-item" onclick="UI.openChat('${u}')"><div class="avatar">${u[0]}</div>${u}</div>`;
+            }
+        });
+    },
+
+    // Чат
+    activePartner: null,
+    openChat(u) {
+        this.activePartner = u;
+        cName.innerText = u==DB.me?'Избранное':u;
+        scr_chat.classList.add('active');
+        this.renderMsg();
+    },
+    closeChat() { scr_chat.classList.remove('active'); this.renderChats(); },
+    renderMsg() {
+        const list = document.getElementById('mList'); list.innerHTML = "";
+        const cid = DB.cid(DB.me, this.activePartner);
+        (DB.store.chats[cid] || []).forEach(m => {
             list.innerHTML += `<div class="bubble ${m.f==DB.me?'me':'other'}">${m.t}</div>`;
         });
         list.scrollTop = list.scrollHeight;
     },
     send() {
-        const t = msgIn.value.trim(); if(!t) return;
-        const cid = DB.cid(DB.me, this.target);
-        if(!DB.data.chats[cid]) DB.data.chats[cid] = [];
-        DB.data.chats[cid].push({f:DB.me, t:t});
-        DB.save(); msgIn.value = ""; this.render();
-    }
-};
-
-const Search = {
-    run() {
-        const q = searchIn.value.trim().toLowerCase();
-        const res = document.getElementById('searchRes'); res.innerHTML = "";
-        if(!q) return;
-        Object.keys(DB.data.users).forEach(u => {
-            if(u.toLowerCase().includes(q) && u != DB.me) {
-                res.innerHTML += `<div class="list-item" onclick="Chat.open('${u}')"><div class="avatar">${u[0]}</div>${u}</div>`;
-            }
-        });
-    }
-};
-
-const Sync = {
-    copyID() {
-        const id = btoa(JSON.stringify({u: DB.me}));
-        prompt("Твой ID (скинь другу):", id);
+        const t = mIn.value.trim(); if(!t) return;
+        const cid = DB.cid(DB.me, this.activePartner);
+        if(!DB.store.chats[cid]) DB.store.chats[cid] = [];
+        DB.store.chats[cid].push({f:DB.me, t:t});
+        DB.save(); mIn.value = ""; this.renderMsg();
     },
-    importFriend() {
-        const code = prompt("Вставь ID друга:");
+
+    // Синхронизация
+    copyID() {
+        const code = btoa(JSON.stringify({u: DB.me}));
+        prompt("Твой ID (отправь другу):", code);
+    },
+    addID() {
+        const code = prompt("Вставь ID друга сюда:");
         if(code) {
             try {
                 const data = JSON.parse(atob(code));
-                if(!DB.data.users[data.u]) {
-                    DB.data.users[data.u] = { pass: 'ext' };
+                if(!DB.store.users[data.u]) {
+                    DB.store.users[data.u] = { pass: 'EXT' };
                     DB.save();
-                    alert("Друг добавлен! Ищи его в Поиске.");
+                    alert("Готово! Теперь найди его в поиске.");
                 }
-            } catch(e) { alert("Ошибка кода"); }
+            } catch(e) { alert("Неверный код"); }
         }
     }
 };
 
-// AUTO-LOGIN
-const savedUser = localStorage.getItem('dex_session');
-if(savedUser && DB.data.users[savedUser]) {
-    Auth.login(savedUser);
-} else {
-    scr_auth.classList.add('active');
-}
+// АВТО-ВХОД
+window.onload = () => {
+    const session = localStorage.getItem('dex_active_session');
+    if(session && DB.store.users[session]) {
+        UI.login(session);
+    } else {
+        scr_auth.classList.add('active');
+    }
+};
 </script>
 </body>
 </html>
