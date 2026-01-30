@@ -1,298 +1,424 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DEX MESSENGER</title>
-    <style>
-        :root {
-            --bg: #0e1621;
-            --header: #17212b;
-            --accent: #2aabee;
-            --text: #ffffff;
-            --text-dim: #708499;
-            --msg-me: #2b5278;
-            --msg-other: #182533;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DEX 3.0</title>
+<style>
+/* --- 1. ОСНОВНОЙ ДИЗАЙН --- */
+:root {
+    --bg: #0f1621;
+    --surface: #17212b;
+    --primary: #5288c1;
+    --text-main: #f5f5f5;
+    --text-sec: #7f91a4;
+    --msg-in: #182533;
+    --msg-out: #2b5278;
+    --red: #e53935;
+}
 
-        * { box-sizing: border-box; transition: 0.2s; }
-        body { 
-            margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; 
-            background: #070d14; color: var(--text); overflow: hidden;
-        }
+* { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+body { margin: 0; background: #000; color: var(--text-main); height: 100vh; display: flex; justify-content: center; overflow: hidden; }
 
-        .app {
-            max-width: 500px; margin: auto; height: 100vh;
-            background: var(--bg); display: flex; flex-direction: column;
-            position: relative;
-        }
+.app {
+    width: 100%; max-width: 480px; height: 100%;
+    background: var(--bg); display: flex; flex-direction: column;
+    position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
 
-        header {
-            background: var(--header); padding: 15px;
-            display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 10;
-        }
+/* --- 2. ЭКРАНЫ --- */
+.screen {
+    display: none; flex-direction: column; height: 100%;
+    position: absolute; top: 0; left: 0; width: 100%; background: var(--bg); z-index: 10;
+}
+.screen.active { display: flex; z-index: 20; }
 
-        .screen { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
-        .screen.active { display: flex; }
+/* --- 3. ХЕДЕР --- */
+header {
+    background: var(--surface); padding: 12px 16px; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2); flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; gap: 15px; font-weight: 600; font-size: 18px; }
+.btn-icon { background: none; border: none; color: var(--text-main); font-size: 20px; cursor: pointer; padding: 5px; }
 
-        /* Auth Screen */
-        .auth-container { padding: 30px; display: flex; flex-direction: column; justify-content: center; height: 100%; }
-        .logo { font-size: 40px; font-weight: bold; text-align: center; color: var(--accent); margin-bottom: 20px; }
-        
-        input {
-            background: #1f2933; border: 1px solid #242f3d; padding: 14px;
-            border-radius: 12px; color: #fff; width: 100%; margin-bottom: 12px; font-size: 16px;
-        }
-        input:focus { border-color: var(--accent); outline: none; }
+/* --- 4. СПИСКИ И ЧАТЫ --- */
+.scroll-area { flex: 1; overflow-y: auto; }
 
-        button {
-            background: var(--accent); color: #fff; border: none;
-            padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px;
-        }
-        button:hover { opacity: 0.9; }
+.chat-row {
+    display: flex; align-items: center; padding: 10px 15px;
+    cursor: pointer; transition: 0.2s;
+}
+.chat-row:hover { background: #1c2a38; }
+.avatar {
+    width: 48px; height: 48px; border-radius: 50%; background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: bold; margin-right: 12px; color: #fff;
+    background-size: cover; background-position: center;
+}
 
-        /* Chat List */
-        .chat-item {
-            display: flex; align-items: center; padding: 12px 15px;
-            cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.2);
-        }
-        .chat-item:hover { background: #17212b; }
-        .avatar {
-            width: 50px; height: 50px; border-radius: 50%;
-            background: linear-gradient(45deg, #3390ec, #2aabee);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 18px; margin-right: 15px;
-        }
+.chat-info { flex: 1; min-width: 0; }
+.chat-name { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+.chat-preview { color: var(--text-sec); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-meta { font-size: 12px; color: var(--text-sec); margin-left: 10px; }
 
-        /* Messages */
-        .msg-area { 
-            flex: 1; overflow-y: auto; padding: 15px; 
-            background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-        }
-        .bubble {
-            max-width: 80%; padding: 10px 14px; border-radius: 16px;
-            margin-bottom: 5px; font-size: 15px; line-height: 1.4;
-            position: relative; animation: fadeIn 0.2s;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } }
-        .me { background: var(--msg-me); align-self: flex-end; border-bottom-right-radius: 4px; margin-left: auto; }
-        .other { background: var(--msg-other); align-self: flex-start; border-bottom-left-radius: 4px; }
+/* --- 5. СООБЩЕНИЯ --- */
+.msg-list {
+    flex: 1; overflow-y: auto; padding: 10px 15px;
+    background-image: url("https://web.telegram.org/img/bg_0.png"); /* Темный паттерн */
+    background-color: var(--bg); background-blend-mode: overlay;
+    display: flex; flex-direction: column; gap: 6px;
+}
 
-        .input-bar { background: var(--header); padding: 10px; display: flex; gap: 10px; }
+.bubble {
+    max-width: 75%; padding: 8px 12px; border-radius: 12px;
+    font-size: 15px; line-height: 1.4; position: relative;
+    word-wrap: break-word; animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Profile */
-        .profile-box { padding: 20px; text-align: center; }
-        .note-card { background: #182533; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+.bubble.out { background: var(--msg-out); align-self: flex-end; border-bottom-right-radius: 2px; }
+.bubble.in { background: var(--msg-in); align-self: flex-start; border-bottom-left-radius: 2px; }
 
-        .nav { display: flex; background: var(--header); border-top: 1px solid #000; }
-        .nav-btn { flex: 1; text-align: center; padding: 15px; cursor: pointer; color: var(--text-dim); }
-        .nav-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
-    </style>
+.msg-time { font-size: 11px; color: rgba(255,255,255,0.5); float: right; margin-left: 8px; margin-top: 6px; }
+
+/* --- 6. ВВОД ТЕКСТА --- */
+.input-panel {
+    background: var(--surface); padding: 8px; display: flex; gap: 8px; align-items: flex-end;
+}
+textarea {
+    flex: 1; background: var(--bg); border: none; border-radius: 20px;
+    padding: 10px 15px; color: #fff; resize: none; outline: none; height: 42px; font-size: 15px;
+}
+.send-btn {
+    width: 42px; height: 42px; border-radius: 50%; background: var(--primary);
+    border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+
+/* --- 7. ПРОФИЛЬ И ФОРМЫ --- */
+.form-box { padding: 30px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; text-align: center; }
+input { background: var(--surface); border: 1px solid #333; padding: 12px; border-radius: 8px; color: white; width: 100%; outline: none; }
+.btn-main { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+
+/* --- 8. КОНТЕКСТНОЕ МЕНЮ (УДАЛЕНИЕ) --- */
+#contextMenu {
+    display: none; position: absolute; background: var(--surface);
+    border-radius: 8px; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    z-index: 100; width: 150px;
+}
+.ctx-item { padding: 10px; cursor: pointer; color: var(--red); font-weight: 500; }
+.ctx-item:hover { background: rgba(255,255,255,0.05); }
+
+/* --- 9. Floating Action Button --- */
+.fab {
+    position: absolute; bottom: 20px; right: 20px; width: 56px; height: 56px;
+    background: var(--primary); border-radius: 50%; color: white;
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;
+}
+</style>
 </head>
 <body>
 
 <div class="app">
-    <header id="appHeader">
-        <div id="backBtn" style="cursor:pointer; display:none;">←</div>
-        <div id="headerTitle" style="font-weight:bold; flex:1;">DEX</div>
-    </header>
-
+    
     <div id="scr-auth" class="screen active">
-        <div class="auth-container">
-            <div class="logo">DEX</div>
-            <input id="authUser" placeholder="Имя пользователя">
+        <div class="form-box">
+            <h1 style="color: var(--primary);">DEX</h1>
+            <input id="authLogin" placeholder="Придумайте никнейм">
             <input id="authPass" type="password" placeholder="Пароль">
-            <button id="loginBtn">Начать общение</button>
-            <p style="font-size: 12px; color: var(--text-dim); text-align: center; margin-top: 15px;">
-                Если аккаунта нет, он будет создан автоматически
-            </p>
+            <button class="btn-main" onclick="Auth.login()">Войти / Создать</button>
         </div>
     </div>
 
-    <div id="scr-list" class="screen">
-        <div id="chatList"></div>
-        <div class="nav">
-            <div class="nav-btn active" onclick="nav('list')">Чаты</div>
-            <div class="nav-btn" onclick="nav('profile')">Профиль</div>
-        </div>
+    <div id="scr-home" class="screen">
+        <header>
+            <div class="header-left">
+                <div class="btn-icon" onclick="Nav.to('profile')">☰</div>
+                <span>Чаты</span>
+            </div>
+            <div class="btn-icon" onclick="Nav.to('search')">🔍</div>
+        </header>
+        <div class="scroll-area" id="chatList"></div>
+        <div class="fab" onclick="Nav.to('search')">✎</div>
     </div>
 
     <div id="scr-chat" class="screen">
-        <div class="msg-area" id="msgArea"></div>
-        <div class="input-bar">
-            <input id="msgInput" placeholder="Сообщение..." style="margin:0">
-            <button id="sendBtn">➤</button>
+        <header>
+            <div class="header-left">
+                <div class="btn-icon" onclick="Nav.back()">←</div>
+                <div id="chatHeaderName">User</div>
+            </div>
+            <div id="chatHeaderAvatar" class="avatar" style="width:32px; height:32px; font-size:14px;"></div>
+        </header>
+        <div class="msg-list" id="msgContainer"></div>
+        <div class="input-panel">
+            <textarea id="msgInput" placeholder="Сообщение..."></textarea>
+            <button class="send-btn" onclick="Chat.send()">➤</button>
         </div>
+        <div id="contextMenu">
+            <div class="ctx-item" onclick="Chat.deleteMsg()">Удалить</div>
+            <div class="ctx-item" style="color: var(--text-sec)" onclick="Chat.closeCtx()">Отмена</div>
+        </div>
+    </div>
+
+    <div id="scr-search" class="screen">
+        <header>
+            <div class="header-left"><div class="btn-icon" onclick="Nav.back()">←</div> Поиск</div>
+        </header>
+        <div style="padding: 10px;">
+            <input id="searchInput" placeholder="Введите никнейм..." oninput="Search.find()">
+        </div>
+        <div class="scroll-area" id="searchResult"></div>
     </div>
 
     <div id="scr-profile" class="screen">
-        <div class="profile-box">
-            <div class="avatar" style="width:80px; height:80px; margin: 0 auto 10px; font-size:30px;" id="pAvatar">?</div>
-            <h2 id="pName">User</h2>
-            <input id="editName" placeholder="Новое имя">
-            <button onclick="updateProfile()" style="width:100%">Сменить имя</button>
-            <hr style="opacity:0.1; margin:20px 0">
-            <h3 style="text-align:left">Мои заметки</h3>
-            <div style="display:flex; gap:5px">
-                <input id="noteInput" placeholder="Что в мыслях?" style="margin:0">
-                <button onclick="addNote()">+</button>
-            </div>
-            <div id="notesArea" style="margin-top:15px; text-align:left"></div>
-            <button onclick="logout()" style="background:#333; margin-top:20px; width:100%">Выйти</button>
-        </div>
-        <div class="nav">
-            <div class="nav-btn" onclick="nav('list')">Чаты</div>
-            <div class="nav-btn active" onclick="nav('profile')">Профиль</div>
+        <header>
+            <div class="header-left"><div class="btn-icon" onclick="Nav.back()">←</div> Профиль</div>
+        </header>
+        <div class="form-box" style="justify-content: flex-start;">
+            <div id="profAvatar" class="avatar" style="width:100px; height:100px; margin: 0 auto; font-size: 40px;"></div>
+            <h2 id="profName"></h2>
+            
+            <label style="text-align:left; color: var(--text-sec); font-size:12px;">Ссылка на аватарку (URL)</label>
+            <input id="profUrl" placeholder="https://...">
+            <button class="btn-main" onclick="Profile.save()">Сохранить фото</button>
+            <button class="btn-main" style="background: #333; margin-top: 20px;" onclick="Auth.logout()">Выйти</button>
         </div>
     </div>
+
 </div>
 
 <script>
-    // --- ДАННЫЕ ---
-    let db = JSON.parse(localStorage.getItem('dex_data')) || {
-        users: {}, 
-        globalMsgs: [{from: 'System', text: 'Добро пожаловать в глобальный чат!'}]
-    };
-    let curUser = localStorage.getItem('dex_session');
+// === 1. БАЗА ДАННЫХ И СОСТОЯНИЕ ===
+const DB = {
+    data: JSON.parse(localStorage.getItem('dex_db_v3')) || { users: {}, chats: {} },
+    save() { localStorage.setItem('dex_db_v3', JSON.stringify(this.data)); },
+    
+    // Получить ID чата между двумя юзерами (всегда одинаковый: "bob_alice")
+    getChatId(u1, u2) { return [u1, u2].sort().join('_'); }
+};
 
-    const save = () => localStorage.setItem('dex_data', JSON.stringify(db));
+const State = { me: null, activeChat: null, targetMsg: null };
 
-    // --- НАВИГАЦИЯ ---
-    function show(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('scr-' + id).classList.add('active');
-        backBtn.style.display = (id === 'chat') ? 'block' : 'none';
-        if(id === 'list') headerTitle.innerText = "DEX";
-    }
-
-    function nav(type) {
-        if(type === 'list') { renderChats(); show('list'); }
-        else { renderProfile(); show('profile'); }
-    }
-
-    // --- ЛОГИКА ВХОДА ---
-    loginBtn.onclick = () => {
-        const u = authUser.value.trim();
+// === 2. АВТОРИЗАЦИЯ ===
+const Auth = {
+    login() {
+        const u = authLogin.value.trim();
         const p = authPass.value.trim();
-
-        if(!u || !p) return alert("Введите имя и пароль!");
-
-        if(!db.users[u]) {
-            // Регистрация
-            db.users[u] = { pass: p, name: u, notes: [] };
-            save();
-        } else {
-            // Вход
-            if(db.users[u].pass !== p) return alert("Неверный пароль!");
-        }
-
-        curUser = u;
-        localStorage.setItem('dex_session', u);
-        nav('list');
-    };
-
-    // --- СПИСОК ЧАТОВ ---
-    function renderChats() {
-        const list = document.getElementById('chatList');
-        list.innerHTML = `
-            <div class="chat-item" onclick="openChat('Global')">
-                <div class="avatar">G</div>
-                <div style="flex:1">
-                    <div style="font-weight:bold">Глобальный чат</div>
-                    <div style="font-size:13px; color:var(--text-dim)">${db.globalMsgs[db.globalMsgs.length-1].text}</div>
-                </div>
-            </div>
-            <div class="chat-item" onclick="nav('profile')">
-                <div class="avatar">⭐</div>
-                <div style="flex:1">
-                    <div style="font-weight:bold">Избранное</div>
-                    <div style="font-size:13px; color:var(--text-dim)">Ваши заметки</div>
-                </div>
-            </div>
-        `;
-    }
-
-    // --- ЧАТ ---
-    function openChat(id) {
-        headerTitle.innerText = id;
-        show('chat');
-        renderMessages();
-    }
-
-    function renderMessages() {
-        msgArea.innerHTML = "";
-        db.globalMsgs.forEach(m => {
-            const b = document.createElement('div');
-            b.className = `bubble ${m.from === curUser ? 'me' : 'other'}`;
-            b.innerHTML = `<b style="font-size:10px; color:var(--accent)">${m.from}</b><br>${m.text}`;
-            msgArea.appendChild(b);
-        });
-        msgArea.scrollTop = msgArea.scrollHeight;
-    }
-
-    sendBtn.onclick = () => {
-        const t = msgInput.value.trim();
-        if(!t) return;
-        db.globalMsgs.push({ from: curUser, text: t });
-        msgInput.value = "";
-        save();
-        renderMessages();
-    };
-
-    // --- ПРОФИЛЬ ---
-    function renderProfile() {
-        const u = db.users[curUser];
-        pName.innerText = u.name;
-        pAvatar.innerText = u.name[0].toUpperCase();
+        if(!u || !p) return alert("Заполните поля");
         
-        notesArea.innerHTML = "";
-        u.notes.forEach((n, i) => {
-            notesArea.innerHTML += `
-                <div class="note-card">
-                    <span>${n}</span>
-                    <span onclick="delNote(${i})" style="color:red; cursor:pointer">×</span>
-                </div>`;
-        });
-    }
-
-    window.updateProfile = () => {
-        const newN = editName.value.trim();
-        if(!newN) return;
-        db.users[curUser].name = newN;
-        save();
-        renderProfile();
-        editName.value = "";
-    };
-
-    window.addNote = () => {
-        const t = noteInput.value.trim();
-        if(!t) return;
-        db.users[curUser].notes.push(t);
-        save();
-        noteInput.value = "";
-        renderProfile();
-    };
-
-    window.delNote = (i) => {
-        db.users[curUser].notes.splice(i, 1);
-        save();
-        renderProfile();
-    };
-
-    function logout() {
-        localStorage.removeItem('dex_session');
+        if(!DB.data.users[u]) {
+            // Регистрация
+            DB.data.users[u] = { pass: p, avatar: '' };
+            // Создаем чат с собой
+            const selfChatId = DB.getChatId(u, u);
+            DB.data.chats[selfChatId] = [];
+            DB.save();
+        } else if(DB.data.users[u].pass !== p) {
+            return alert("Неверный пароль");
+        }
+        
+        State.me = u;
+        localStorage.setItem('dex_user', u);
+        Home.render();
+        Nav.to('home');
+        authLogin.value = ''; authPass.value = '';
+    },
+    logout() {
+        localStorage.removeItem('dex_user');
         location.reload();
     }
+};
 
-    backBtn.onclick = () => nav('list');
-
-    // Авто-вход при загрузке
-    if(curUser && db.users[curUser]) {
-        nav('list');
+// === 3. НАВИГАЦИЯ ===
+const Nav = {
+    history: [],
+    to(screen) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('scr-' + screen).classList.add('active');
+        if(screen !== 'auth' && screen !== 'home') this.history.push(screen);
+        if(screen === 'profile') Profile.render();
+    },
+    back() {
+        this.history.pop();
+        const prev = this.history.length > 0 ? this.history[this.history.length-1] : 'home';
+        this.to(prev === 'chat' ? 'home' : prev); // Фикс логики возврата
     }
-</script>
+};
 
+// === 4. ГЛАВНЫЙ ЭКРАН (СПИСОК ЧАТОВ) ===
+const Home = {
+    render() {
+        const list = document.getElementById('chatList');
+        list.innerHTML = "";
+        
+        // 1. Сначала "Избранное"
+        this.addChatRow(list, State.me, "Saved Messages", "⭐");
+
+        // 2. Ищем чаты, где есть мы
+        Object.keys(DB.data.chats).forEach(chatId => {
+            const members = chatId.split('_');
+            if(members.includes(State.me) && chatId !== State.me + '_' + State.me) {
+                const otherUser = members[0] === State.me ? members[1] : members[0];
+                this.addChatRow(list, otherUser, otherUser, null);
+            }
+        });
+    },
+    addChatRow(container, userId, displayName, iconOverride) {
+        const msgs = DB.data.chats[DB.getChatId(State.me, userId)] || [];
+        const lastMsg = msgs.length ? msgs[msgs.length-1] : {text: "Нет сообщений", time: ""};
+        
+        const userObj = DB.data.users[userId];
+        const avatarStyle = userObj?.avatar ? `background-image: url('${userObj.avatar}')` : '';
+        const char = iconOverride || userId[0].toUpperCase();
+
+        const row = document.createElement('div');
+        row.className = 'chat-row';
+        row.onclick = () => Chat.open(userId);
+        row.innerHTML = `
+            <div class="avatar" style="${avatarStyle}">${userObj?.avatar ? '' : char}</div>
+            <div class="chat-info">
+                <div style="display:flex; justify-content:space-between">
+                    <div class="chat-name">${displayName}</div>
+                    <div class="chat-meta">${lastMsg.time}</div>
+                </div>
+                <div class="chat-preview">${lastMsg.text}</div>
+            </div>
+        `;
+        container.appendChild(row);
+    }
+};
+
+// === 5. ЧАТ И СООБЩЕНИЯ ===
+const Chat = {
+    partner: null,
+    
+    open(partnerId) {
+        this.partner = partnerId;
+        State.activeChat = DB.getChatId(State.me, partnerId);
+        
+        // UI настройки
+        const isSelf = partnerId === State.me;
+        chatHeaderName.innerText = isSelf ? "Избранное" : partnerId;
+        
+        // Аватар в хедере
+        const u = DB.data.users[partnerId];
+        chatHeaderAvatar.innerText = u.avatar ? '' : (isSelf ? '⭐' : partnerId[0].toUpperCase());
+        chatHeaderAvatar.style.backgroundImage = u.avatar ? `url('${u.avatar}')` : 'none';
+
+        Nav.to('chat');
+        this.render();
+    },
+
+    render() {
+        const msgs = DB.data.chats[State.activeChat] || [];
+        const container = document.getElementById('msgContainer');
+        container.innerHTML = "";
+        
+        msgs.forEach((m, idx) => {
+            const div = document.createElement('div');
+            div.className = `bubble ${m.from === State.me ? 'out' : 'in'}`;
+            div.innerHTML = `${m.text}<span class="msg-time">${m.time}</span>`;
+            
+            // Обработка правого клика (удаление)
+            div.oncontextmenu = (e) => {
+                e.preventDefault();
+                if(m.from === State.me) { // Можно удалять только свои
+                    State.targetMsg = idx;
+                    const menu = document.getElementById('contextMenu');
+                    menu.style.display = 'block';
+                    menu.style.left = e.pageX + 'px';
+                    menu.style.top = e.pageY + 'px';
+                }
+            };
+            container.appendChild(div);
+        });
+        container.scrollTop = container.scrollHeight;
+    },
+
+    send() {
+        const text = msgInput.value.trim();
+        if(!text) return;
+        
+        if(!DB.data.chats[State.activeChat]) DB.data.chats[State.activeChat] = [];
+        
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        DB.data.chats[State.activeChat].push({ from: State.me, text, time });
+        DB.save();
+        
+        msgInput.value = "";
+        this.render();
+    },
+
+    deleteMsg() {
+        if(State.targetMsg !== null) {
+            DB.data.chats[State.activeChat].splice(State.targetMsg, 1);
+            DB.save();
+            this.render();
+        }
+        this.closeCtx();
+    },
+
+    closeCtx() {
+        document.getElementById('contextMenu').style.display = 'none';
+        State.targetMsg = null;
+    }
+};
+
+// === 6. ПОИСК ===
+const Search = {
+    find() {
+        const q = searchInput.value.trim().toLowerCase();
+        const res = document.getElementById('searchResult');
+        res.innerHTML = "";
+        if(!q) return;
+
+        Object.keys(DB.data.users).forEach(u => {
+            if(u.toLowerCase().includes(q)) {
+                const div = document.createElement('div');
+                div.className = 'chat-row';
+                div.innerHTML = `
+                    <div class="avatar">${u[0].toUpperCase()}</div>
+                    <div class="chat-name">${u}</div>
+                `;
+                div.onclick = () => Chat.open(u);
+                res.appendChild(div);
+            }
+        });
+    }
+};
+
+// === 7. ПРОФИЛЬ ===
+const Profile = {
+    render() {
+        const u = DB.data.users[State.me];
+        profName.innerText = State.me;
+        profUrl.value = u.avatar || "";
+        
+        profAvatar.innerText = u.avatar ? "" : State.me[0].toUpperCase();
+        profAvatar.style.backgroundImage = u.avatar ? `url('${u.avatar}')` : 'none';
+    },
+    save() {
+        const url = profUrl.value.trim();
+        DB.data.users[State.me].avatar = url;
+        DB.save();
+        alert("Аватар обновлен!");
+        this.render();
+    }
+};
+
+// === INIT ===
+document.onclick = (e) => {
+    if(!e.target.closest('.bubble')) Chat.closeCtx();
+};
+
+if(localStorage.getItem('dex_user')) {
+    State.me = localStorage.getItem('dex_user');
+    Home.render();
+    Nav.to('home');
+}
+</script>
 </body>
 </html>
 
