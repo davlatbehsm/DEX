@@ -21,12 +21,13 @@ body{
 }
 header{
   text-align:center;
-  padding:16px;
-  font-size:24px;
+  padding:14px;
+  font-size:22px;
   font-weight:600;
   background:#17212b;
 }
-.screen{display:none;padding:16px}
+
+.screen{display:none}
 .screen.active{display:block}
 
 input,button{
@@ -47,42 +48,38 @@ button{background:#2aabee;color:#fff}
   cursor:pointer;
 }
 
-/* chats */
+/* ===== Chats list ===== */
 .search{
   background:#1f2933;
   padding:10px;
   border-radius:12px;
-  margin-bottom:10px;
+  margin:12px;
 }
 .chat{
   display:flex;
   gap:12px;
-  padding:10px;
-  border-radius:12px;
+  padding:12px;
   cursor:pointer;
 }
 .chat:hover{background:#1f2933}
 .avatar{
-  width:48px;height:48px;
+  width:46px;height:46px;
   border-radius:50%;
   background:#2aabee;
   display:flex;
   align-items:center;
   justify-content:center;
   font-weight:700;
-  overflow:hidden;
 }
-.avatar img{width:100%;height:100%;object-fit:cover}
 .chat-info{flex:1}
 .chat-name{font-weight:600}
 .chat-last{font-size:13px;color:#9ca3af}
-.star{color:#facc15}
 
-/* messages */
+/* ===== Messages ===== */
 .messages{
   height:65vh;
   overflow-y:auto;
-  padding:10px;
+  padding:12px;
 }
 .msg{
   max-width:75%;
@@ -92,7 +89,6 @@ button{background:#2aabee;color:#fff}
 }
 .me{background:#2aabee;margin-left:auto}
 .other{background:#1f2933}
-.msg img{max-width:100%;border-radius:10px}
 
 .input-bar{
   display:flex;
@@ -106,27 +102,19 @@ button{background:#2aabee;color:#fff}
 <body>
 
 <div class="app">
+
 <header>DEX</header>
 
-<!-- LOGIN -->
-<div id="login" class="screen active">
-  <input id="loginUser" placeholder="Username">
-  <input id="loginPass" type="password" placeholder="Пароль">
-  <button id="loginBtn">Войти</button>
-  <div class="link" id="toRegister">Нет аккаунта? Зарегистрироваться</div>
-</div>
-
 <!-- REGISTER -->
-<div id="register" class="screen">
+<div id="register" class="screen active" style="padding:16px">
   <input id="regUser" placeholder="Username">
   <input id="regPass" type="password" placeholder="Пароль">
   <button id="regBtn">Зарегистрироваться</button>
-  <div class="link" id="toLogin">Уже есть аккаунт? Войти</div>
 </div>
 
 <!-- CHAT LIST -->
 <div id="chatListScreen" class="screen">
-  <input id="search" class="search" placeholder="Поиск">
+  <input id="search" class="search" placeholder="Поиск чатов">
   <div id="chatList"></div>
 </div>
 
@@ -144,103 +132,87 @@ button{background:#2aabee;color:#fff}
 </div>
 
 <script>
-// ====== STATE ======
-const users = JSON.parse(localStorage.getItem("dex_users") || "{}");
-const chats = JSON.parse(localStorage.getItem("dex_chats") || "{}");
-const favorites = JSON.parse(localStorage.getItem("dex_fav") || "[]");
+// ===== STATE =====
+const users = JSON.parse(localStorage.getItem("dex_users")||"{}");
+const chats = JSON.parse(localStorage.getItem("dex_chats")||"{}");
 let currentUser = localStorage.getItem("dex_current");
 let activeChat = null;
 
-// ====== SCREENS ======
-const loginScreen = document.getElementById("login");
-const registerScreen = document.getElementById("register");
+// ===== SCREENS =====
+const registerScreen = register;
 const chatListScreen = document.getElementById("chatListScreen");
 const chatScreen = document.getElementById("chatScreen");
 
 function show(screen){
-  [loginScreen,registerScreen,chatListScreen,chatScreen]
-    .forEach(s=>s.classList.remove("active"));
+  [registerScreen,chatListScreen,chatScreen].forEach(s=>s.classList.remove("active"));
   screen.classList.add("active");
 }
 
-// ====== AUTH ======
-document.getElementById("toRegister").onclick = () => show(registerScreen);
-document.getElementById("toLogin").onclick = () => show(loginScreen);
-
-document.getElementById("regBtn").onclick = () => {
+// ===== REGISTER (AUTO LOGIN) =====
+regBtn.onclick = () => {
   const u = regUser.value.trim();
   const p = regPass.value.trim();
   if(!u || !p) return alert("Заполни поля");
   if(users[u]) return alert("Username занят");
-  users[u] = {pass:p, ava:null};
-  localStorage.setItem("dex_users", JSON.stringify(users));
-  alert("Аккаунт создан");
-  show(loginScreen);
-};
 
-document.getElementById("loginBtn").onclick = () => {
-  const u = loginUser.value.trim();
-  const p = loginPass.value.trim();
-  if(!users[u] || users[u].pass !== p) return alert("Неверные данные");
+  users[u] = {pass:p};
+  localStorage.setItem("dex_users", JSON.stringify(users));
+
   currentUser = u;
   localStorage.setItem("dex_current", u);
+
+  // Создаём чат с собой (Saved Messages)
+  chats[u] = chats[u] || [
+    {from:u, text:"Добро пожаловать в DEX 👋"}
+  ];
+  localStorage.setItem("dex_chats", JSON.stringify(chats));
+
   renderChats();
   show(chatListScreen);
 };
 
-// ====== CHATS ======
+// ===== CHATS LIST =====
 function renderChats(){
-  chatList.innerHTML = "";
-  const keys = Object.keys(chats).filter(k=>k.includes(search.value));
-  keys.forEach(u=>{
-    const last = chats[u].slice(-1)[0];
-    chatList.innerHTML += `
-      <div class="chat" onclick="openChat('${u}')">
-        <div class="avatar">${u[0].toUpperCase()}</div>
-        <div class="chat-info">
-          <div class="chat-name">${u}</div>
-          <div class="chat-last">${last?.text || ""}</div>
+  chatList.innerHTML="";
+  Object.keys(chats)
+    .filter(c=>c.includes(search.value))
+    .forEach(c=>{
+      const last = chats[c].slice(-1)[0];
+      chatList.innerHTML += `
+        <div class="chat" onclick="openChat('${c}')">
+          <div class="avatar">${c[0].toUpperCase()}</div>
+          <div class="chat-info">
+            <div class="chat-name">${c === currentUser ? "Saved Messages" : c}</div>
+            <div class="chat-last">${last?.text || ""}</div>
+          </div>
         </div>
-      </div>`;
-  });
+      `;
+    });
 }
-
 search.oninput = renderChats;
 
 function openChat(u){
   activeChat = u;
-  if(!chats[u]) chats[u] = [];
   renderMessages();
   show(chatScreen);
 }
 
-// ====== MESSAGES ======
+// ===== MESSAGES =====
 function renderMessages(){
-  messages.innerHTML = "";
+  messages.innerHTML="";
   chats[activeChat].forEach(m=>{
     messages.innerHTML += `
-      <div class="msg ${m.from===currentUser?'me':'other'}">
-        ${m.text || ""}
-        ${m.img ? `<img src="${m.img}">` : ""}
-      </div>`;
+      <div class="msg ${m.from===currentUser?'me':'other'}">${m.text}</div>
+    `;
   });
+  messages.scrollTop = messages.scrollHeight;
 }
 
-document.getElementById("sendBtn").onclick = () => {
+sendBtn.onclick = () => {
   if(!msgText.value) return;
-  chats[activeChat].push({from:currentUser, text:msgText.value});
-  msgText.value = "";
+  chats[activeChat].push({from:currentUser,text:msgText.value});
+  msgText.value="";
   save();
-};
-
-document.getElementById("imgBtn").onclick = () => imgInput.click();
-imgInput.onchange = e => {
-  const r = new FileReader();
-  r.onload = () => {
-    chats[activeChat].push({from:currentUser, img:r.result});
-    save();
-  };
-  r.readAsDataURL(e.target.files[0]);
 };
 
 function save(){
@@ -249,7 +221,7 @@ function save(){
   renderChats();
 }
 
-// ====== AUTO LOGIN ======
+// ===== AUTO LOGIN =====
 if(currentUser){
   renderChats();
   show(chatListScreen);
