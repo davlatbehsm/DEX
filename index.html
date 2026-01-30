@@ -9,7 +9,7 @@
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui,Roboto;
+  font-family:system-ui,Roboto,Arial;
   background:#0e1621;
   color:#fff;
 }
@@ -20,14 +20,14 @@ body{
   background:#0e1621;
 }
 header{
-  padding:16px;
-  font-size:22px;
-  font-weight:600;
   text-align:center;
+  padding:16px;
+  font-size:24px;
+  font-weight:600;
   background:#17212b;
 }
-.section{display:none;padding:16px}
-.section.active{display:block}
+.screen{display:none;padding:16px}
+.screen.active{display:block}
 
 input,button{
   width:100%;
@@ -41,17 +41,17 @@ input{background:#1f2933;color:#fff}
 button{background:#2aabee;color:#fff}
 
 .link{
+  margin-top:14px;
   text-align:center;
   color:#2aabee;
-  margin-top:12px;
   cursor:pointer;
 }
 
 /* chats */
 .search{
   background:#1f2933;
-  border-radius:12px;
   padding:10px;
+  border-radius:12px;
   margin-bottom:10px;
 }
 .chat{
@@ -79,7 +79,11 @@ button{background:#2aabee;color:#fff}
 .star{color:#facc15}
 
 /* messages */
-.messages{height:65vh;overflow-y:auto;padding:10px}
+.messages{
+  height:65vh;
+  overflow-y:auto;
+  padding:10px;
+}
 .msg{
   max-width:75%;
   padding:8px 12px;
@@ -102,142 +106,154 @@ button{background:#2aabee;color:#fff}
 <body>
 
 <div class="app">
-
 <header>DEX</header>
 
 <!-- LOGIN -->
-<div id="login" class="section active">
-  <input id="lUser" placeholder="Username">
-  <input id="lPass" type="password" placeholder="Пароль">
-  <button onclick="login()">Войти</button>
-  <div class="link" onclick="openRegister()">Нет аккаунта? Зарегистрироваться</div>
+<div id="login" class="screen active">
+  <input id="loginUser" placeholder="Username">
+  <input id="loginPass" type="password" placeholder="Пароль">
+  <button id="loginBtn">Войти</button>
+  <div class="link" id="toRegister">Нет аккаунта? Зарегистрироваться</div>
 </div>
 
 <!-- REGISTER -->
-<div id="register" class="section">
-  <input id="rUser" placeholder="Username">
-  <input id="rPass" type="password" placeholder="Пароль">
-  <button onclick="register()">Зарегистрироваться</button>
-  <div class="link" onclick="openLogin()">Уже есть аккаунт? Войти</div>
+<div id="register" class="screen">
+  <input id="regUser" placeholder="Username">
+  <input id="regPass" type="password" placeholder="Пароль">
+  <button id="regBtn">Зарегистрироваться</button>
+  <div class="link" id="toLogin">Уже есть аккаунт? Войти</div>
 </div>
 
-<!-- CHATS -->
-<div id="chats" class="section">
+<!-- CHAT LIST -->
+<div id="chatListScreen" class="screen">
   <input id="search" class="search" placeholder="Поиск">
   <div id="chatList"></div>
 </div>
 
 <!-- CHAT -->
-<div id="chatView" class="section">
+<div id="chatScreen" class="screen">
   <div class="messages" id="messages"></div>
   <div class="input-bar">
     <input type="file" id="imgInput" hidden accept="image/*">
-    <button onclick="imgInput.click()">📎</button>
+    <button id="imgBtn">📎</button>
     <input id="msgText" placeholder="Сообщение">
-    <button onclick="send()">➤</button>
+    <button id="sendBtn">➤</button>
   </div>
 </div>
 
 </div>
 
 <script>
-let users = JSON.parse(localStorage.getItem("dex_users")||"{}");
-let current = localStorage.getItem("dex_current");
-let chats = JSON.parse(localStorage.getItem("dex_chats")||"{}");
-let favorites = JSON.parse(localStorage.getItem("dex_fav")||"[]");
+// ====== STATE ======
+const users = JSON.parse(localStorage.getItem("dex_users") || "{}");
+const chats = JSON.parse(localStorage.getItem("dex_chats") || "{}");
+const favorites = JSON.parse(localStorage.getItem("dex_fav") || "[]");
+let currentUser = localStorage.getItem("dex_current");
 let activeChat = null;
 
-function openRegister(){
-  login.classList.remove("active");
-  register.classList.add("active");
-}
-function openLogin(){
-  register.classList.remove("active");
-  login.classList.add("active");
+// ====== SCREENS ======
+const loginScreen = document.getElementById("login");
+const registerScreen = document.getElementById("register");
+const chatListScreen = document.getElementById("chatListScreen");
+const chatScreen = document.getElementById("chatScreen");
+
+function show(screen){
+  [loginScreen,registerScreen,chatListScreen,chatScreen]
+    .forEach(s=>s.classList.remove("active"));
+  screen.classList.add("active");
 }
 
-function register(){
-  if(!rUser.value || !rPass.value) return alert("Заполни поля");
-  if(users[rUser.value]) return alert("Username занят");
-  users[rUser.value]={pass:rPass.value,ava:null};
-  localStorage.setItem("dex_users",JSON.stringify(users));
-  openLogin();
-}
+// ====== AUTH ======
+document.getElementById("toRegister").onclick = () => show(registerScreen);
+document.getElementById("toLogin").onclick = () => show(loginScreen);
 
-function login(){
-  let u=users[lUser.value];
-  if(!u || u.pass!==lPass.value) return alert("Неверные данные");
-  current=lUser.value;
-  localStorage.setItem("dex_current",current);
-  openChats();
-}
+document.getElementById("regBtn").onclick = () => {
+  const u = regUser.value.trim();
+  const p = regPass.value.trim();
+  if(!u || !p) return alert("Заполни поля");
+  if(users[u]) return alert("Username занят");
+  users[u] = {pass:p, ava:null};
+  localStorage.setItem("dex_users", JSON.stringify(users));
+  alert("Аккаунт создан");
+  show(loginScreen);
+};
 
-function openChats(){
-  login.classList.remove("active");
-  register.classList.remove("active");
-  chatsDiv.classList.add("active");
+document.getElementById("loginBtn").onclick = () => {
+  const u = loginUser.value.trim();
+  const p = loginPass.value.trim();
+  if(!users[u] || users[u].pass !== p) return alert("Неверные данные");
+  currentUser = u;
+  localStorage.setItem("dex_current", u);
   renderChats();
-}
+  show(chatListScreen);
+};
 
+// ====== CHATS ======
 function renderChats(){
-  chatList.innerHTML="";
-  let keys=[...new Set([...favorites,...Object.keys(chats)])];
-  keys.filter(k=>k.includes(search.value)).forEach(u=>{
-    let fav=favorites.includes(u);
-    chatList.innerHTML+=`
-    <div class="chat" onclick="openChat('${u}')">
-      <div class="avatar">${users[u]?.ava?`<img src="${users[u].ava}">`:u[0]}</div>
-      <div class="chat-info">
-        <div class="chat-name">${u} ${fav?"⭐":""}</div>
-        <div class="chat-last">${chats[u]?.slice(-1)[0]?.text||""}</div>
-      </div>
-    </div>`;
+  chatList.innerHTML = "";
+  const keys = Object.keys(chats).filter(k=>k.includes(search.value));
+  keys.forEach(u=>{
+    const last = chats[u].slice(-1)[0];
+    chatList.innerHTML += `
+      <div class="chat" onclick="openChat('${u}')">
+        <div class="avatar">${u[0].toUpperCase()}</div>
+        <div class="chat-info">
+          <div class="chat-name">${u}</div>
+          <div class="chat-last">${last?.text || ""}</div>
+        </div>
+      </div>`;
   });
 }
 
-search.oninput=renderChats;
+search.oninput = renderChats;
 
 function openChat(u){
-  activeChat=u;
-  if(!chats[u]) chats[u]=[];
-  chatsDiv.classList.remove("active");
-  chatView.classList.add("active");
-  renderMsgs();
+  activeChat = u;
+  if(!chats[u]) chats[u] = [];
+  renderMessages();
+  show(chatScreen);
 }
 
-function renderMsgs(){
-  messages.innerHTML="";
+// ====== MESSAGES ======
+function renderMessages(){
+  messages.innerHTML = "";
   chats[activeChat].forEach(m=>{
-    messages.innerHTML+=`
-    <div class="msg ${m.from===current?'me':'other'}">
-      ${m.text||""}
-      ${m.img?`<img src="${m.img}">`:""}
-    </div>`;
+    messages.innerHTML += `
+      <div class="msg ${m.from===currentUser?'me':'other'}">
+        ${m.text || ""}
+        ${m.img ? `<img src="${m.img}">` : ""}
+      </div>`;
   });
 }
 
-function send(){
-  chats[activeChat].push({from:current,text:msgText.value});
-  msgText.value="";
+document.getElementById("sendBtn").onclick = () => {
+  if(!msgText.value) return;
+  chats[activeChat].push({from:currentUser, text:msgText.value});
+  msgText.value = "";
   save();
-}
+};
 
-imgInput.onchange=e=>{
-  let r=new FileReader();
-  r.onload=()=>{
-    chats[activeChat].push({from:current,img:r.result});
+document.getElementById("imgBtn").onclick = () => imgInput.click();
+imgInput.onchange = e => {
+  const r = new FileReader();
+  r.onload = () => {
+    chats[activeChat].push({from:currentUser, img:r.result});
     save();
   };
   r.readAsDataURL(e.target.files[0]);
 };
 
 function save(){
-  localStorage.setItem("dex_chats",JSON.stringify(chats));
-  renderMsgs();
+  localStorage.setItem("dex_chats", JSON.stringify(chats));
+  renderMessages();
   renderChats();
 }
 
-if(current) openChats();
+// ====== AUTO LOGIN ======
+if(currentUser){
+  renderChats();
+  show(chatListScreen);
+}
 </script>
 
 </body>
