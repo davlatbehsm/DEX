@@ -2,53 +2,54 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>DEX 6.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEX Messenger</title>
 
 <style>
-:root{
- --bg:#0f1621;--card:#17212b;--primary:#5288c1;
- --text:#fff;--text-dim:#7f91a4;
- --msg-out:#2b5278;--msg-in:#182533;--red:#ff595a
+:root {
+  --bg:#0f1621;--card:#17212b;--primary:#5288c1;
+  --text:#fff;--text-dim:#7f91a4;
+  --out:#2b5278;--in:#182533;--red:#ff595a;
 }
 *{box-sizing:border-box}
-body{margin:0;background:#000;color:var(--text);font-family:-apple-system,sans-serif;height:100dvh}
-.app{max-width:500px;height:100%;margin:auto;background:var(--bg);display:flex;flex-direction:column;position:relative}
+body{margin:0;background:#000;font-family:-apple-system;color:var(--text)}
+.app{max-width:500px;margin:auto;height:100vh;background:var(--bg);position:relative}
 
 /* screens */
-.screen{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column}
+.screen{position:absolute;inset:0;display:none;flex-direction:column}
 .screen.active{display:flex}
 
 /* header */
-header{height:60px;background:var(--card);display:flex;align-items:center;padding:0 16px;font-size:20px;font-weight:600}
+header{height:56px;background:var(--card);display:flex;align-items:center;padding:0 14px}
+.title{font-weight:700;font-size:18px}
 
 /* content */
-.content{flex:1;overflow-y:auto;padding-bottom:80px}
+.content{flex:1;overflow-y:auto}
+
+/* auth */
+.center{flex:1;display:flex;flex-direction:column;justify-content:center;padding:30px;gap:14px;text-align:center}
+input{padding:14px;border-radius:10px;border:1px solid #2f3b47;background:var(--card);color:#fff}
+button{padding:14px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-weight:700}
+
+/* chat list */
+.item{display:flex;gap:12px;padding:12px;border-bottom:1px solid #1c2733;cursor:pointer}
+.avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);
+display:flex;align-items:center;justify-content:center;font-weight:700}
+.preview{color:var(--text-dim);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* chat */
+.msgs{flex:1;padding:10px;display:flex;flex-direction:column;gap:6px}
+.bubble{max-width:75%;padding:8px 12px;border-radius:14px}
+.me{background:var(--out);align-self:flex-end}
+.other{background:var(--in)}
+.time{font-size:11px;color:#aaa;text-align:right;margin-top:2px}
+.input{display:flex;gap:8px;padding:10px;background:var(--card)}
+.input input{flex:1}
 
 /* tabs */
-.tab-bar{height:65px;background:var(--card);display:flex}
-.tab{flex:1;text-align:center;font-size:12px;color:var(--text-dim);padding-top:8px;cursor:pointer}
+.tabs{height:56px;background:var(--card);display:flex}
+.tab{flex:1;text-align:center;padding:8px;font-size:12px;color:var(--text-dim)}
 .tab.active{color:var(--primary)}
-
-/* list */
-.list-item{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1c252f;cursor:pointer}
-.avatar{width:52px;height:52px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;margin-right:15px}
-.preview{font-size:14px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-/* messages */
-.bubble{max-width:80%;padding:10px 14px;border-radius:16px;margin-bottom:8px}
-.me{background:var(--msg-out);margin-left:auto}
-.other{background:var(--msg-in)}
-.time{font-size:10px;color:#aaa;float:right;margin-left:8px}
-
-/* inputs */
-input{background:var(--card);border:1px solid #2f3b47;color:#fff;padding:15px;border-radius:12px;font-size:16px;width:100%}
-.btn{background:var(--primary);border:none;color:#fff;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer}
-.btn-sec{background:#242f3d}
-
-/* modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:100}
-.modal-box{background:var(--card);padding:20px;border-radius:15px;width:100%;max-width:400px}
 </style>
 </head>
 
@@ -56,62 +57,51 @@ input{background:var(--card);border:1px solid #2f3b47;color:#fff;padding:15px;bo
 <div class="app">
 
 <!-- AUTH -->
-<div id="scr-auth" class="screen">
-  <div style="padding:30px;margin:auto;width:100%">
-    <h1 style="text-align:center;color:var(--primary);font-size:40px">DEX</h1>
-    <input id="inUser" placeholder="Логин">
-    <input id="inPass" type="password" placeholder="Пароль" style="margin-top:10px">
-    <button class="btn" style="margin-top:15px" onclick="Auth.login()">Войти / Создать</button>
+<div id="auth" class="screen active">
+  <div class="center">
+    <h1 style="color:var(--primary)">DEX</h1>
+    <input id="nick" placeholder="Username">
+    <button onclick="Core.login()">Войти / Создать</button>
+    <small style="color:#666">Регистрация происходит автоматически</small>
   </div>
 </div>
 
 <!-- MAIN -->
-<div id="scr-main" class="screen">
-<header id="mainTitle">Чаты</header>
+<div id="main" class="screen">
+<header><div class="title" id="title">Чаты</div></header>
 
-<div id="view-chats" class="content"></div>
+<div id="chats" class="content"></div>
 
-<div id="view-search" class="content" style="display:none;padding:15px">
-  <input id="searchIn" placeholder="Поиск пользователя" oninput="Search.go()">
-  <div id="searchRes"></div>
+<div id="search" class="content" style="display:none;padding:10px">
+<input id="searchIn" placeholder="Поиск..." oninput="Core.search()">
+<div id="searchRes"></div>
 </div>
 
-<div id="view-prof" class="content" style="display:none;padding:20px;text-align:center">
-  <div id="myAv" class="avatar" style="width:100px;height:100px;margin:auto;font-size:40px"></div>
-  <h2 id="myName"></h2>
-  <button class="btn btn-sec" onclick="Sync.export()">📤 Поделиться ID</button>
-  <button class="btn btn-sec" style="margin-top:10px" onclick="Sync.import()">📥 Добавить друга</button>
-  <button class="btn" style="margin-top:20px;background:var(--red)" onclick="Auth.logout()">Выйти</button>
+<div id="profile" class="content" style="display:none;padding:20px;text-align:center">
+<div class="avatar" id="myAv" style="margin:auto;width:90px;height:90px;font-size:36px"></div>
+<h2 id="myName"></h2>
+<button onclick="Core.logout()" style="background:var(--red)">Выйти</button>
 </div>
 
-<div class="tab-bar">
-  <div class="tab active" onclick="Tabs.go('chats',this)">💬<br>Чаты</div>
-  <div class="tab" onclick="Tabs.go('search',this)">🔍<br>Поиск</div>
-  <div class="tab" onclick="Tabs.go('prof',this)">👤<br>Профиль</div>
+<div class="tabs">
+<div class="tab active" onclick="Tabs.go('chats',this)">💬<br>Чаты</div>
+<div class="tab" onclick="Tabs.go('search',this)">🔍<br>Поиск</div>
+<div class="tab" onclick="Tabs.go('profile',this)">👤<br>Профиль</div>
 </div>
 </div>
 
 <!-- CHAT -->
-<div id="scr-chat" class="screen">
+<div id="chat" class="screen">
 <header>
-  <span style="cursor:pointer" onclick="Chat.close()">←</span>
-  <span id="chatName" style="margin-left:15px"></span>
+<div onclick="Chat.close()" style="margin-right:10px;cursor:pointer">←</div>
+<div class="title" id="chatName"></div>
 </header>
-<div id="msgList" class="content" style="padding:15px"></div>
-<div style="padding:10px;display:flex;gap:10px;background:var(--card)">
-  <input id="msgIn" placeholder="Сообщение">
-  <button class="btn" style="width:50px" onclick="Chat.send()">➤</button>
-</div>
-</div>
 
-<!-- MODAL -->
-<div id="modal" class="modal">
-<div class="modal-box">
-<h3 id="modalTitle"></h3>
-<p id="modalText" style="word-break:break-all;font-size:12px;color:var(--text-dim)"></p>
-<input id="modalIn" style="display:none;margin-top:10px">
-<button class="btn" style="margin-top:10px" id="modalBtn">OK</button>
-<button class="btn btn-sec" style="margin-top:10px" onclick="modal.style.display='none'">Отмена</button>
+<div id="msgs" class="msgs"></div>
+
+<div class="input">
+<input id="msg" placeholder="Сообщение">
+<button onclick="Chat.send()">➤</button>
 </div>
 </div>
 
@@ -119,127 +109,130 @@ input{background:var(--card);border:1px solid #2f3b47;color:#fff;padding:15px;bo
 
 <script>
 const DB={
- me:localStorage.getItem('dex_me'),
- data:JSON.parse(localStorage.getItem('dex_v6'))||{users:{},chats:{}},
- save(){localStorage.setItem('dex_v6',JSON.stringify(this.data));if(this.me)localStorage.setItem('dex_me',this.me)},
- cid(a,b){return[a,b].sort().join('::')}
-};
+user:localStorage.getItem('dex_user'),
+data:JSON.parse(localStorage.getItem('dex_data'))||{users:{},chats:{}},
+save(){
+localStorage.setItem('dex_data',JSON.stringify(this.data))
+if(this.user)localStorage.setItem('dex_user',this.user)
+},
+cid(a,b){return[a,b].sort().join('::')}
+}
 
-const Auth={
- login(){
-  const u=inUser.value.trim(),p=inPass.value.trim();
-  if(!u||!p)return alert("Заполни поля");
-  if(!DB.data.users[u]){
-   DB.data.users[u]={pass:p};
-   DB.data.chats[DB.cid(u,u)]=[{f:u,t:"⭐ Избранное",d:""}];
-  }else if(DB.data.users[u].pass!==p)return alert("Неверный пароль");
-  DB.me=u;DB.save();UI.enter();
- },
- logout(){localStorage.clear();location.reload()}
-};
+const Core={
+login(){
+const u=nick.value.trim()
+if(!u)return alert("Введите имя")
+DB.user=u
+if(!DB.data.users[u]){
+DB.data.users[u]={}
+DB.data.chats[DB.cid(u,u)]=[{from:'system',text:'⭐ Избранное',time:''}]
+}
+DB.save()
+UI.enter()
+},
+logout(){
+localStorage.removeItem('dex_user')
+location.reload()
+},
+search(){
+const q=searchIn.value.toLowerCase()
+searchRes.innerHTML=''
+Object.keys(DB.data.users).forEach(u=>{
+if(u!==DB.user && u.toLowerCase().includes(q)){
+searchRes.innerHTML+=`
+<div class="item" onclick="Chat.open('${u}')">
+<div class="avatar">${u[0]}</div>
+<div>${u}</div>
+</div>`
+}
+})
+}
+}
 
 const UI={
- enter(){
-  scr_auth.classList.remove('active');
-  scr_main.classList.add('active');
-  myName.innerText=DB.me;
-  myAv.innerText=DB.me[0].toUpperCase();
-  Tabs.renderChats();
- }
-};
+enter(){
+auth.classList.remove('active')
+main.classList.add('active')
+myName.innerText=DB.user
+myAv.innerText=DB.user[0]
+ChatList.render()
+}
+}
 
-const Tabs={
- go(t,el){
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  el.classList.add('active');
-  ['chats','search','prof'].forEach(v=>document.getElementById('view-'+v).style.display=v==t?'block':'none');
-  mainTitle.innerText=t=='chats'?'Чаты':t=='search'?'Поиск':'Профиль';
-  if(t=='chats')this.renderChats();
- },
- renderChats(){
-  view_chats.innerHTML="";
-  Object.keys(DB.data.chats).forEach(id=>{
-   if(!id.includes(DB.me))return;
-   const p=id.split('::').find(x=>x!==DB.me)||DB.me;
-   const last=DB.data.chats[id].slice(-1)[0];
-   view_chats.innerHTML+=`
-   <div class="list-item" onclick="Chat.open('${p}')">
-    <div class="avatar">${p[0].toUpperCase()}</div>
-    <div>
-     <b>${p==DB.me?'⭐ Избранное':p}</b>
-     <div class="preview">${last.t}</div>
-    </div>
-   </div>`;
-  });
- }
-};
+const ChatList={
+render(){
+chats.innerHTML=''
+Object.keys(DB.data.chats).forEach(id=>{
+if(id.includes(DB.user)){
+const p=id.split('::').find(x=>x!==DB.user)||DB.user
+const last=DB.data.chats[id].slice(-1)[0]
+chats.innerHTML+=`
+<div class="item" onclick="Chat.open('${p}')">
+<div class="avatar">${p[0]}</div>
+<div>
+<b>${p===DB.user?'Избранное':p}</b>
+<div class="preview">${last.text}</div>
+</div>
+</div>`
+}
+})
+}
+}
 
 const Chat={
- target:null,
- open(u){
-  this.target=u;
-  chatName.innerText=u==DB.me?'Избранное':u;
-  scr_chat.classList.add('active');
-  this.render();
- },
- close(){scr_chat.classList.remove('active');Tabs.renderChats()},
- render(){
-  msgList.innerHTML="";
-  const cid=DB.cid(DB.me,this.target);
-  (DB.data.chats[cid]||[]).forEach(m=>{
-   msgList.innerHTML+=`<div class="bubble ${m.f==DB.me?'me':'other'}">${m.t}<span class="time">${m.d}</span></div>`;
-  });
- },
- send(){
-  const t=msgIn.value.trim();if(!t)return;
-  const cid=DB.cid(DB.me,this.target);
-  if(!DB.data.chats[cid])DB.data.chats[cid]=[];
-  DB.data.chats[cid].push({f:DB.me,t,d:new Date().toLocaleTimeString().slice(0,5)});
-  DB.save();msgIn.value="";this.render();
- }
-};
+with:null,
+open(u){
+this.with=u
+chatName.innerText=u===DB.user?'Избранное':u
+chat.classList.add('active')
+this.render()
+},
+close(){
+chat.classList.remove('active')
+ChatList.render()
+},
+render(){
+msgs.innerHTML=''
+(DB.data.chats[DB.cid(DB.user,this.with)]||[]).forEach(m=>{
+msgs.innerHTML+=`
+<div class="bubble ${m.from===DB.user?'me':'other'}">
+${m.text}
+<div class="time">${m.time}</div>
+</div>`
+})
+msgs.scrollTop=msgs.scrollHeight
+},
+send(){
+if(!msg.value)return
+const id=DB.cid(DB.user,this.with)
+DB.data.chats[id]=DB.data.chats[id]||[]
+DB.data.chats[id].push({
+from:DB.user,
+text:msg.value,
+time:new Date().toLocaleTimeString().slice(0,5)
+})
+msg.value=''
+DB.save()
+this.render()
+}
+}
 
-const Search={
- go(){
-  searchRes.innerHTML="";
-  const q=searchIn.value.toLowerCase();
-  if(!q)return;
-  Object.keys(DB.data.users).forEach(u=>{
-   if(u.toLowerCase().includes(q)&&u!==DB.me)
-    searchRes.innerHTML+=`<div class="list-item" onclick="Chat.open('${u}')"><div class="avatar">${u[0]}</div>${u}</div>`;
-  });
- }
-};
+const Tabs={
+go(n,el){
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'))
+el.classList.add('active')
+;['chats','search','profile'].forEach(v=>{
+document.getElementById(v).style.display=v===n?'block':'none'
+})
+title.innerText=n==='chats'?'Чаты':n==='search'?'Поиск':'Профиль'
+if(n==='chats')ChatList.render()
+}
+}
 
-const Sync={
- export(){
-  modal.style.display='flex';
-  modalTitle.innerText="Твой ID";
-  modalText.innerText=btoa(JSON.stringify({u:DB.me}));
-  modalIn.style.display='none';
-  modalBtn.onclick=()=>modal.style.display='none';
- },
- import(){
-  modal.style.display='flex';
-  modalTitle.innerText="ID друга";
-  modalText.innerText="Вставь код";
-  modalIn.style.display='block';
-  modalBtn.onclick=()=>{
-   try{
-    const d=JSON.parse(atob(modalIn.value));
-    if(!DB.data.users[d.u])DB.data.users[d.u]={pass:'external'};
-    DB.save();modal.style.display='none';alert("Друг добавлен!");
-   }catch{alert("Ошибка")}
-  };
- }
-};
-
-if (DB.me && DB.data.users[DB.me]) {
-    UI.enter();
-} else {
-    DB.me = null;
-    localStorage.removeItem('dex_me');
-    scr_auth.classList.add('active');
+if(DB.user && DB.data.users[DB.user]){
+UI.enter()
+}else{
+localStorage.removeItem('dex_user')
 }
 </script>
 </body>
