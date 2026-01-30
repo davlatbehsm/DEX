@@ -234,7 +234,13 @@ const Sync={
  }
 };
 
-if(DB.me)UI.enter();else scr_auth.classList.add('active');
+if (DB.me && DB.data.users[DB.me]) {
+    UI.enter();
+} else {
+    DB.me = null;
+    localStorage.removeItem('dex_me');
+    scr_auth.classList.add('active');
+}
 </script>
 </body>
 </html>
